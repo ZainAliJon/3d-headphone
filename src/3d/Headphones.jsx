@@ -1,59 +1,15 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
 /* ----------------------------------------------------------------------------
- *  Geometry profiles (memoised)
+ *  Stylised "3D icon" cup — stacked tiers (largest at outer back → smallest
+ *  at the front where the cushion mounts), with metallic bevel rings between
+ *  tiers. Local frame: +Z is INWARD (toward head). -Z is OUTWARD.
  * -------------------------------------------------------------------------- */
 
-function useCupProfile() {
-  // Lathe profile (revolved around Y). Outward direction = +Y in geometry frame.
-  // We'll rotate the mesh so Y points along the user's listening axis (X for cups).
-  return useMemo(() => {
-    const pts = [];
-    pts.push(new THREE.Vector2(0.0,  0.205));
-    pts.push(new THREE.Vector2(0.18, 0.215));
-    pts.push(new THREE.Vector2(0.36, 0.21));
-    pts.push(new THREE.Vector2(0.50, 0.18));
-    pts.push(new THREE.Vector2(0.59, 0.12));
-    pts.push(new THREE.Vector2(0.625, 0.05));
-    pts.push(new THREE.Vector2(0.63, -0.04));
-    pts.push(new THREE.Vector2(0.61, -0.10));
-    pts.push(new THREE.Vector2(0.56, -0.135));
-    pts.push(new THREE.Vector2(0.48, -0.155));
-    pts.push(new THREE.Vector2(0.42, -0.16));
-    pts.push(new THREE.Vector2(0.0,  -0.16));
-    return pts;
-  }, []);
-}
-
-function useCushionProfile() {
-  // Cushion sits on the inner face of the cup, slightly proud, hollow centre.
-  return useMemo(() => {
-    const pts = [];
-    pts.push(new THREE.Vector2(0.46, -0.16));
-    pts.push(new THREE.Vector2(0.50, -0.18));
-    pts.push(new THREE.Vector2(0.535, -0.22));
-    pts.push(new THREE.Vector2(0.535, -0.27));
-    pts.push(new THREE.Vector2(0.515, -0.31));
-    pts.push(new THREE.Vector2(0.475, -0.335));
-    pts.push(new THREE.Vector2(0.425, -0.345));
-    pts.push(new THREE.Vector2(0.39,  -0.34));
-    pts.push(new THREE.Vector2(0.36,  -0.30));
-    pts.push(new THREE.Vector2(0.355, -0.22));
-    pts.push(new THREE.Vector2(0.39,  -0.17));
-    pts.push(new THREE.Vector2(0.46,  -0.16));
-    return pts;
-  }, []);
-}
-
-/* ----------------------------------------------------------------------------
- *  Cup — single ear cup oriented so +Y points outward in local space
- * -------------------------------------------------------------------------- */
-
-function Cup({ side, color, accent, metalness, roughness, onPartHover, onPartClick }) {
-  const cupProfile = useCupProfile();
-  const cushionProfile = useCushionProfile();
+function StackedCup({ color, accent, metalness, roughness, hasButton, onPartHover, onPartClick }) {
   const [hover, setHover] = useState(null);
 
   const setPart = (name) => (e) => {
@@ -62,164 +18,165 @@ function Cup({ side, color, accent, metalness, roughness, onPartHover, onPartCli
     onPartHover?.(name);
   };
 
+  const cupMaterial = (
+    <meshPhysicalMaterial
+      color={color}
+      metalness={metalness}
+      roughness={roughness}
+      clearcoat={0.7}
+      clearcoatRoughness={0.18}
+      envMapIntensity={1.1}
+    />
+  );
+
   return (
-    <group>
-      {/* Outer shell (lathe revolve) */}
-      <mesh
-        rotation={[0, 0, Math.PI / 2 * side]}
-        castShadow
-        receiveShadow
-        onPointerOver={setPart('cup')}
-        onPointerOut={() => onPartHover?.(null)}
-        onClick={(e) => { e.stopPropagation(); onPartClick?.('cup'); }}
-      >
-        <latheGeometry args={[cupProfile, 96]} />
+    <group
+      onPointerOver={setPart('cup')}
+      onPointerOut={() => onPartHover?.(null)}
+      onClick={(e) => { e.stopPropagation(); onPartClick?.('cup'); }}
+    >
+      {/* Tier 1 — outer back puck (largest) */}
+      <mesh position={[0, 0, -0.20]} rotation={[Math.PI / 2, 0, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.62, 0.60, 0.18, 96]} />
+        {cupMaterial}
+      </mesh>
+      {/* Outer back face cap (flat circle) */}
+      <mesh position={[0, 0, -0.291]}>
+        <circleGeometry args={[0.60, 96]} />
         <meshPhysicalMaterial
           color={color}
           metalness={metalness}
           roughness={roughness}
-          clearcoat={0.55}
-          clearcoatRoughness={0.18}
-          envMapIntensity={1.15}
-        />
-      </mesh>
-
-      {/* Cushion (separate lathe — vegetable-tanned leather feel) */}
-      <mesh
-        rotation={[0, 0, Math.PI / 2 * side]}
-        castShadow
-        onPointerOver={setPart('cushion')}
-        onPointerOut={() => onPartHover?.(null)}
-      >
-        <latheGeometry args={[cushionProfile, 96]} />
-        <meshPhysicalMaterial
-          color="#0a0a0a"
-          roughness={0.95}
-          sheen={1}
-          sheenRoughness={0.55}
-          sheenColor="#2a2a2a"
-        />
-      </mesh>
-
-      {/* Stitching seam — a subtle bright torus near the cushion crease */}
-      <mesh position={[side * 0.16, 0, 0]} rotation={[0, 0, Math.PI / 2 * side]}>
-        <torusGeometry args={[0.535, 0.003, 8, 96]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
-      </mesh>
-
-      {/* Bevel ring on outer rim */}
-      <mesh position={[side * 0.215, 0, 0]} rotation={[0, 0, Math.PI / 2 * side]}>
-        <torusGeometry args={[0.625, 0.012, 16, 96]} />
-        <meshStandardMaterial color="#0a0a0a" metalness={0.85} roughness={0.3} />
-      </mesh>
-
-      {/* Concentric machined disc on outer face */}
-      <mesh position={[side * 0.218, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.34, 0.42, 96]} />
-        <meshStandardMaterial color="#101013" metalness={0.65} roughness={0.4} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Accent emissive ring */}
-      <mesh position={[side * 0.22, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.32, 0.335, 96]} />
-        <meshStandardMaterial
-          color={accent}
-          emissive={accent}
-          emissiveIntensity={hover === 'cup' ? 1.2 : 0.55}
-          metalness={0.6}
-          roughness={0.25}
+          clearcoat={0.5}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Brand glyph — fine ring at centre */}
-      <mesh position={[side * 0.222, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <circleGeometry args={[0.085, 64]} />
-        <meshStandardMaterial color={color} metalness={0.7} roughness={0.3} />
+      {/* Bevel ring between tier 1 and tier 2 */}
+      <mesh position={[0, 0, -0.10]}>
+        <torusGeometry args={[0.59, 0.022, 16, 96]} />
+        <meshStandardMaterial color={accent} metalness={0.9} roughness={0.32} />
       </mesh>
-      <mesh position={[side * 0.224, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.04, 0.06, 64]} />
-        <meshStandardMaterial color={accent} emissive={accent} emissiveIntensity={0.4} side={THREE.DoubleSide} />
+
+      {/* Tier 2 — mid section */}
+      <mesh position={[0, 0, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.57, 0.54, 0.14, 96]} />
+        {cupMaterial}
+      </mesh>
+
+      {/* Bevel ring between tier 2 and tier 3 */}
+      <mesh position={[0, 0, 0.065]}>
+        <torusGeometry args={[0.53, 0.020, 16, 96]} />
+        <meshStandardMaterial color={accent} metalness={0.9} roughness={0.32} />
+      </mesh>
+
+      {/* Tier 3 — front rim where cushion mounts */}
+      <mesh position={[0, 0, 0.115]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.51, 0.47, 0.10, 96]} />
+        {cupMaterial}
+      </mesh>
+
+      {/* Bevel ring on the front of tier 3 */}
+      <mesh position={[0, 0, 0.165]}>
+        <torusGeometry args={[0.46, 0.016, 16, 96]} />
+        <meshStandardMaterial color={accent} metalness={0.9} roughness={0.35} />
+      </mesh>
+
+      {/* Cushion — fat donut, soft black */}
+      <mesh
+        position={[0, 0, 0.245]}
+        castShadow
+        onPointerOver={setPart('cushion')}
+        onPointerOut={() => onPartHover?.(null)}
+      >
+        <torusGeometry args={[0.36, 0.13, 32, 80]} />
+        <meshPhysicalMaterial
+          color="#0a0a0a"
+          roughness={0.92}
+          sheen={1}
+          sheenColor="#252525"
+          sheenRoughness={0.55}
+          clearcoat={0.15}
+        />
+      </mesh>
+
+      {/* Cushion inner wall (depth in the hole) */}
+      <mesh position={[0, 0, 0.20]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.22, 0.22, 0.10, 64, 1, true]} />
+        <meshStandardMaterial color="#050507" roughness={1} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Driver disc visible through cushion hole */}
-      <mesh position={[side * -0.14, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <circleGeometry args={[0.345, 64]} />
+      <mesh position={[0, 0, 0.16]}>
+        <circleGeometry args={[0.23, 64]} />
         <meshStandardMaterial color="#040405" roughness={1} side={THREE.DoubleSide} />
       </mesh>
-      {/* Driver mesh pattern (concentric rings) */}
-      <mesh position={[side * -0.139, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.08, 0.09, 64]} />
-        <meshStandardMaterial color="#171719" roughness={0.85} side={THREE.DoubleSide} />
+      {/* Driver concentric rings */}
+      <mesh position={[0, 0, 0.161]}>
+        <ringGeometry args={[0.085, 0.092, 64]} />
+        <meshStandardMaterial color="#1a1a1c" roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
-      <mesh position={[side * -0.139, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.18, 0.19, 64]} />
-        <meshStandardMaterial color="#141416" roughness={0.85} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[side * -0.139, 0, 0]} rotation={[0, side * Math.PI / 2, 0]}>
-        <ringGeometry args={[0.27, 0.28, 64]} />
-        <meshStandardMaterial color="#121214" roughness={0.85} side={THREE.DoubleSide} />
+      <mesh position={[0, 0, 0.161]}>
+        <ringGeometry args={[0.165, 0.175, 64]} />
+        <meshStandardMaterial color="#161618" roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Mic holes — three tiny spheres along the bottom edge */}
-      {side === 1 && (
+      {/* Right-cup outer-face button (chrome control disc) */}
+      {hasButton && (
         <group>
-          {[-0.08, 0, 0.08].map((z, i) => (
-            <mesh key={i} position={[0.45, -0.55, z]}>
-              <sphereGeometry args={[0.018, 12, 12]} />
-              <meshStandardMaterial color="#000" roughness={1} />
-            </mesh>
-          ))}
+          {/* Concentric groove on outer back face */}
+          <mesh position={[0, 0, -0.292]}>
+            <ringGeometry args={[0.42, 0.435, 96]} />
+            <meshStandardMaterial color={accent} metalness={0.85} roughness={0.35} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0, 0, -0.292]}>
+            <ringGeometry args={[0.28, 0.288, 96]} />
+            <meshStandardMaterial color="#1a1a1d" metalness={0.6} roughness={0.5} side={THREE.DoubleSide} />
+          </mesh>
+
+          {/* Recessed plate behind button */}
+          <mesh position={[0, 0, -0.293]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.16, 0.16, 0.005, 64]} />
+            <meshPhysicalMaterial color="#1a1a1d" metalness={0.5} roughness={0.55} />
+          </mesh>
+
+          {/* Central chrome button */}
+          <mesh position={[0, 0, -0.31]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.10, 0.105, 0.05, 48]} />
+            <meshPhysicalMaterial
+              color="#dadcdf"
+              metalness={0.55}
+              roughness={0.32}
+              clearcoat={0.6}
+              clearcoatRoughness={0.15}
+            />
+          </mesh>
+          {/* Button face highlight */}
+          <mesh position={[0, 0, -0.336]}>
+            <circleGeometry args={[0.10, 48]} />
+            <meshPhysicalMaterial
+              color="#e6e8eb"
+              metalness={0.45}
+              roughness={0.32}
+              clearcoat={0.7}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
         </group>
       )}
-
-      {/* Control buttons (only on the right cup) */}
-      {side === 1 && (
-        <group>
-          <mesh position={[0.55, -0.32, 0.18]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.022, 0.022, 0.08, 24]} />
-            <meshStandardMaterial color="#1a1a1d" metalness={0.7} roughness={0.35} />
-          </mesh>
-          <mesh position={[0.55, -0.32, -0.18]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.022, 0.022, 0.08, 24]} />
-            <meshStandardMaterial color="#1a1a1d" metalness={0.7} roughness={0.35} />
-          </mesh>
-          {/* USB-C indicator — tiny rectangle */}
-          <mesh position={[0.55, -0.55, 0]} rotation={[0, 0, 0]}>
-            <boxGeometry args={[0.04, 0.04, 0.1]} />
-            <meshStandardMaterial color="#050507" metalness={0.5} roughness={0.4} />
-          </mesh>
-        </group>
-      )}
-
-      {/* Pivot bracket — C-shape that wraps the cup's top-outer quadrant */}
-      <mesh position={[side * 0.15, 0.55, 0]} rotation={[Math.PI / 2, 0, side * Math.PI / 2]}>
-        <torusGeometry args={[0.18, 0.025, 16, 32, Math.PI]} />
-        <meshStandardMaterial color="#a8a8aa" metalness={0.95} roughness={0.22} />
-      </mesh>
-
-      {/* Pivot pin */}
-      <mesh position={[side * 0.18, 0.55, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.14, 24]} />
-        <meshStandardMaterial color="#c8c8ca" metalness={0.95} roughness={0.18} />
-      </mesh>
-      <mesh position={[side * -0.18, 0.55, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.14, 24]} />
-        <meshStandardMaterial color="#c8c8ca" metalness={0.95} roughness={0.18} />
-      </mesh>
     </group>
   );
 }
 
 /* ----------------------------------------------------------------------------
- *  Headphones (root)
+ *  Headphones (root) — chunky stylised look
  * -------------------------------------------------------------------------- */
 
 export default function Headphones({
-  color = '#0f0f12',
-  accent = '#c8ff3e',
-  metalness = 0.5,
-  roughness = 0.32,
+  color = '#1a1a1d',
+  accent = '#7a7a80',
+  metalness = 0.35,
+  roughness = 0.45,
   spinSpeed = 0.25,
   exploded = false,
   paused = false,
@@ -232,6 +189,10 @@ export default function Headphones({
   const rightCupGroup = useRef();
   const t = useRef(0);
 
+  // Position constants for cup placement
+  const CUP_X = 1.42; // distance from centre to each cup
+  const CUP_Y = -0.62; // cup centre lowered so yoke sits cleanly above
+
   useFrame((_, delta) => {
     t.current += delta;
     if (!root.current) return;
@@ -239,7 +200,6 @@ export default function Headphones({
     const targetSpin = paused ? 0 : spinSpeed;
     root.current.rotation.y += delta * targetSpin;
 
-    // Idle float + breathe
     root.current.position.y = Math.sin(t.current * 1.2) * floatAmplitude;
     root.current.rotation.x = THREE.MathUtils.lerp(
       root.current.rotation.x,
@@ -247,117 +207,142 @@ export default function Headphones({
       0.05
     );
 
-    // Exploded ear cups slide outward
     if (leftCupGroup.current && rightCupGroup.current) {
-      const target = exploded ? 0.8 : 0;
+      const offset = exploded ? 0.7 : 0;
       leftCupGroup.current.position.x = THREE.MathUtils.lerp(
-        leftCupGroup.current.position.x, -1.32 - target, 0.1);
+        leftCupGroup.current.position.x, -CUP_X - offset, 0.1);
       rightCupGroup.current.position.x = THREE.MathUtils.lerp(
-        rightCupGroup.current.position.x, 1.32 + target, 0.1);
+        rightCupGroup.current.position.x, CUP_X + offset, 0.1);
     }
   });
 
   return (
     <group ref={root}>
-      {/* Headband — outer arch */}
+      {/* HEADBAND — thick outer arch (slightly squashed depth for slab look) */}
       <mesh
-        position={[0, 0.55, 0]}
+        position={[0, 0.50, 0]}
         castShadow
         receiveShadow
         onPointerOver={(e) => { e.stopPropagation(); onPartHover?.('headband'); }}
         onPointerOut={() => onPartHover?.(null)}
         onClick={(e) => { e.stopPropagation(); onPartClick?.('headband'); }}
+        scale={[1, 1, 0.72]}
       >
-        <torusGeometry args={[1.32, 0.085, 32, 96, Math.PI]} />
+        <torusGeometry args={[1.45, 0.18, 32, 128, Math.PI]} />
         <meshPhysicalMaterial
           color={color}
           metalness={metalness}
-          roughness={roughness}
-          clearcoat={0.5}
-          clearcoatRoughness={0.28}
+          roughness={roughness * 0.65}
+          clearcoat={0.9}
+          clearcoatRoughness={0.15}
         />
       </mesh>
 
-      {/* Headband — inner padded leather */}
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <torusGeometry args={[1.29, 0.062, 16, 80, Math.PI]} />
+      {/* HEADBAND — inner padded strip (thinner, sits under the outer band) */}
+      <mesh position={[0, 0.46, 0]} scale={[1, 1, 0.85]}>
+        <torusGeometry args={[1.4, 0.085, 20, 96, Math.PI]} />
         <meshPhysicalMaterial
           color="#0a0a0a"
           roughness={0.95}
           sheen={1}
-          sheenColor="#2a2a2a"
-          sheenRoughness={0.55}
+          sheenColor="#202020"
+          sheenRoughness={0.5}
         />
       </mesh>
 
-      {/* Sliding extender notches — left side */}
-      {[0.20, 0.32, 0.44].map((y, i) => (
-        <mesh key={`ln-${i}`} position={[-1.32, 0.05 + y * 0.6, 0]}>
-          <boxGeometry args={[0.085, 0.012, 0.085]} />
-          <meshStandardMaterial color="#222" metalness={0.9} roughness={0.3} />
-        </mesh>
-      ))}
-      {/* Sliding extender notches — right side */}
-      {[0.20, 0.32, 0.44].map((y, i) => (
-        <mesh key={`rn-${i}`} position={[1.32, 0.05 + y * 0.6, 0]}>
-          <boxGeometry args={[0.085, 0.012, 0.085]} />
-          <meshStandardMaterial color="#222" metalness={0.9} roughness={0.3} />
-        </mesh>
-      ))}
+      {/* YOKE SLIDERS — silver flat slabs */}
+      <RoundedBox
+        position={[-CUP_X, 0.10, 0]}
+        args={[0.20, 0.62, 0.14]}
+        radius={0.05}
+        smoothness={5}
+        castShadow
+      >
+        <meshPhysicalMaterial
+          color="#bcbcbe"
+          metalness={0.55}
+          roughness={0.42}
+          clearcoat={0.55}
+          clearcoatRoughness={0.22}
+        />
+      </RoundedBox>
+      <RoundedBox
+        position={[CUP_X, 0.10, 0]}
+        args={[0.20, 0.62, 0.14]}
+        radius={0.05}
+        smoothness={5}
+        castShadow
+      >
+        <meshPhysicalMaterial
+          color="#bcbcbe"
+          metalness={0.55}
+          roughness={0.42}
+          clearcoat={0.55}
+          clearcoatRoughness={0.22}
+        />
+      </RoundedBox>
 
-      {/* Yoke arms (slim metal bars connecting band to cups) */}
-      <mesh position={[-1.32, 0.28, 0]} castShadow>
-        <cylinderGeometry args={[0.04, 0.04, 0.55, 24]} />
-        <meshStandardMaterial color="#b6b6b9" metalness={0.96} roughness={0.2} />
+      {/* YOKE inner slot — thin notch line on each slider */}
+      <mesh position={[-CUP_X, 0.12, 0.071]}>
+        <boxGeometry args={[0.10, 0.5, 0.004]} />
+        <meshStandardMaterial color="#8e8e90" roughness={0.55} metalness={0.4} />
       </mesh>
-      <mesh position={[1.32, 0.28, 0]} castShadow>
-        <cylinderGeometry args={[0.04, 0.04, 0.55, 24]} />
-        <meshStandardMaterial color="#b6b6b9" metalness={0.96} roughness={0.2} />
-      </mesh>
-
-      {/* Yoke caps where they enter the band */}
-      <mesh position={[-1.32, 0.55, 0]}>
-        <sphereGeometry args={[0.07, 24, 24]} />
-        <meshStandardMaterial color={color} metalness={metalness} roughness={roughness} />
-      </mesh>
-      <mesh position={[1.32, 0.55, 0]}>
-        <sphereGeometry args={[0.07, 24, 24]} />
-        <meshStandardMaterial color={color} metalness={metalness} roughness={roughness} />
+      <mesh position={[CUP_X, 0.12, 0.071]}>
+        <boxGeometry args={[0.10, 0.5, 0.004]} />
+        <meshStandardMaterial color="#8e8e90" roughness={0.55} metalness={0.4} />
       </mesh>
 
-      {/* Brand bar inset on top of the band */}
-      <mesh position={[0, 1.85, 0]}>
-        <boxGeometry args={[0.16, 0.025, 0.06]} />
-        <meshStandardMaterial
-          color={accent}
-          emissive={accent}
-          emissiveIntensity={0.4}
-          metalness={0.4}
+      {/* YOKE-to-CUP pivot brackets — small chunky blocks at yoke bottom */}
+      <RoundedBox
+        position={[-CUP_X, -0.24, 0]}
+        args={[0.24, 0.13, 0.20]}
+        radius={0.035}
+        smoothness={4}
+        castShadow
+      >
+        <meshPhysicalMaterial
+          color="#9b9b9d"
+          metalness={0.55}
           roughness={0.4}
+          clearcoat={0.45}
         />
-      </mesh>
+      </RoundedBox>
+      <RoundedBox
+        position={[CUP_X, -0.24, 0]}
+        args={[0.24, 0.13, 0.20]}
+        radius={0.035}
+        smoothness={4}
+        castShadow
+      >
+        <meshPhysicalMaterial
+          color="#9b9b9d"
+          metalness={0.55}
+          roughness={0.4}
+          clearcoat={0.45}
+        />
+      </RoundedBox>
 
-      {/* Left cup */}
-      <group ref={leftCupGroup} position={[-1.32, -0.05, 0]}>
-        <Cup
-          side={-1}
+      {/* LEFT CUP — outer side at -X (so cup-local +Z faces +X, toward head) */}
+      <group ref={leftCupGroup} position={[-CUP_X, CUP_Y, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <StackedCup
           color={color}
           accent={accent}
           metalness={metalness}
           roughness={roughness}
+          hasButton={false}
           onPartHover={onPartHover}
           onPartClick={onPartClick}
         />
       </group>
 
-      {/* Right cup */}
-      <group ref={rightCupGroup} position={[1.32, -0.05, 0]}>
-        <Cup
-          side={1}
+      {/* RIGHT CUP — outer side at +X */}
+      <group ref={rightCupGroup} position={[CUP_X, CUP_Y, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <StackedCup
           color={color}
           accent={accent}
           metalness={metalness}
           roughness={roughness}
+          hasButton={true}
           onPartHover={onPartHover}
           onPartClick={onPartClick}
         />

@@ -8,10 +8,10 @@ const MODELS = [
     tag: 'Flagship · Wireless',
     price: 349,
     body: 'Our reference over-ear. 60-hour battery, adaptive ANC, six anodised finishes.',
-    color: '#0e0e11',
-    accent: '#c8ff3e',
-    metalness: 0.55,
-    roughness: 0.32,
+    color: '#1a1a1d',
+    accent: '#b0b0b4',
+    metalness: 0.35,
+    roughness: 0.45,
     available: true,
   },
   {
@@ -20,10 +20,10 @@ const MODELS = [
     tag: 'Studio · Wired',
     price: 599,
     body: 'Calibrated for mastering. Detachable XLR, custom-tuned 50mm drivers, removable everything.',
-    color: '#1a1a1d',
-    accent: '#7faaff',
-    metalness: 0.7,
-    roughness: 0.28,
+    color: '#0c0c0f',
+    accent: '#7a7a80',
+    metalness: 0.5,
+    roughness: 0.38,
     available: true,
   },
   {
@@ -33,9 +33,9 @@ const MODELS = [
     price: 249,
     body: 'Our previous flagship, expertly restored at our Lisbon workshop. New cushions, new battery, full warranty.',
     color: '#3a4a3d',
-    accent: '#d4ffb4',
-    metalness: 0.4,
-    roughness: 0.42,
+    accent: '#a3b6a5',
+    metalness: 0.3,
+    roughness: 0.5,
     available: true,
   },
 ];
@@ -73,7 +73,7 @@ export default function Lineup() {
                   roughness={m.roughness}
                   spinSpeed={0.4}
                   controls="presentation"
-                  cameraPosition={[0, 0.2, 5.2]}
+                  cameraPosition={[0, 0, 5.6]}
                   fov={32}
                 />
               </div>

@@ -15,12 +15,12 @@ const PART_LABELS = {
 };
 
 export default function Scene({
-  color,
-  accent,
-  metalness,
-  roughness,
+  color = '#1a1a1d',
+  accent = '#b0b0b4',
+  metalness = 0.35,
+  roughness = 0.45,
   spinSpeed = 0.3,
-  cameraPosition = [0, 0.4, 5.4],
+  cameraPosition = [0, 0.0, 5.6],
   fov = 32,
   controls = 'presentation', // 'presentation' | 'orbit' | 'none'
   exploded = false,

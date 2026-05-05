@@ -68,14 +68,14 @@ export default function Technology() {
           </div>
           <div className="aspect-square rounded-3xl border border-white/10 overflow-hidden bg-ink-900">
             <Scene
-              color="#0e0e11"
-              accent="#c8ff3e"
-              metalness={0.55}
-              roughness={0.32}
+              color="#1a1a1d"
+              accent="#b0b0b4"
+              metalness={0.35}
+              roughness={0.45}
               spinSpeed={0.35}
               controls="presentation"
               showAnnotations
-              cameraPosition={[0, 0.2, 5]}
+              cameraPosition={[0, 0, 5.6]}
               fov={32}
             />
           </div>

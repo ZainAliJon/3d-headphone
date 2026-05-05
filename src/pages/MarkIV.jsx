@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import Scene from '../3d/Scene';
 
 const FINISHES = [
-  { id: 'graphite',  name: 'Graphite',  color: '#0f0f12', accent: '#c8ff3e', metalness: 0.55, roughness: 0.32 },
-  { id: 'porcelain', name: 'Porcelain', color: '#e9e6df', accent: '#1a1a1a', metalness: 0.18, roughness: 0.5 },
-  { id: 'cobalt',    name: 'Cobalt',    color: '#1c2c5c', accent: '#7faaff', metalness: 0.6, roughness: 0.3 },
-  { id: 'oxide',     name: 'Oxide',     color: '#7a2820', accent: '#ffb27a', metalness: 0.45, roughness: 0.38 },
-  { id: 'sage',      name: 'Sage',      color: '#3a4a3d', accent: '#d4ffb4', metalness: 0.4, roughness: 0.42 },
-  { id: 'champagne', name: 'Champagne', color: '#caa56b', accent: '#1a1a1a', metalness: 0.85, roughness: 0.22 },
+  { id: 'graphite',  name: 'Graphite',  color: '#1a1a1d', accent: '#b0b0b4', metalness: 0.35, roughness: 0.45 },
+  { id: 'midnight',  name: 'Midnight',  color: '#0c0c0f', accent: '#5a5a60', metalness: 0.45, roughness: 0.40 },
+  { id: 'porcelain', name: 'Porcelain', color: '#e6e3dc', accent: '#9a9a9a', metalness: 0.18, roughness: 0.5 },
+  { id: 'cobalt',    name: 'Cobalt',    color: '#1c2c5c', accent: '#7faaff', metalness: 0.5, roughness: 0.35 },
+  { id: 'oxide',     name: 'Oxide',     color: '#6e2418', accent: '#d8a47a', metalness: 0.4, roughness: 0.42 },
+  { id: 'sage',      name: 'Sage',      color: '#3a4a3d', accent: '#a3b6a5', metalness: 0.3, roughness: 0.5 },
 ];
 
 const CUSHIONS = [
@@ -58,7 +58,7 @@ export default function MarkIV() {
                 controls="presentation"
                 exploded={exploded}
                 showAnnotations
-                cameraPosition={[0, 0.2, exploded ? 6.2 : 5]}
+                cameraPosition={[0, 0.0, exploded ? 6.6 : 5.6]}
                 fov={32}
               />
 

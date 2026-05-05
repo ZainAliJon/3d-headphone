@@ -25,10 +25,10 @@ function Hero() {
 
       <div className="absolute inset-0">
         <Scene
-          color="#0e0e11"
-          accent="#c8ff3e"
-          metalness={0.55}
-          roughness={0.32}
+          color="#1a1a1d"
+          accent="#b0b0b4"
+          metalness={0.35}
+          roughness={0.45}
           spinSpeed={0.22}
           controls="presentation"
         />
