@@ -7,7 +7,8 @@
     height: 100%;
     background: #070709;
     color: #e7e6ea;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -43,3 +44,42 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Fraunces optical-size + italic helpers */
+.italic-display {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+}
+
+.serif-display {
+  font-family: 'Fraunces', serif;
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+}
+
+/* Layout helpers */
+.shell {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .shell {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+/* Hide horizontal scrollbar on inline scrollers */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

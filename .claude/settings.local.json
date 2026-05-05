@@ -16,7 +16,14 @@
       "Bash(curl -s -o /dev/null -w \"Headphones: %{http_code}\\\\n\" http://localhost:5173/src/3d/Headphones.jsx)",
       "Bash(curl -s \"http://localhost:5173/src/3d/Headphones.jsx\")",
       "Bash(curl -s \"http://localhost:5173/src/3d/Scene.jsx\")",
-      "Bash(curl -s \"http://localhost:5173/src/components/Configurator.jsx\")"
+      "Bash(curl -s \"http://localhost:5173/src/components/Configurator.jsx\")",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5173__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5174__TRACKED_VAR__)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:5174/__TRACKED_VAR__)"
     ]
   }
 }

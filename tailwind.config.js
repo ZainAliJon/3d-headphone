@@ -17,8 +17,12 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        sans: ['"Inter"', 'system-ui', 'sans-serif'],
+        display: ['"Fraunces"', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['"Inter Tight"', 'system-ui', 'sans-serif'],
+      },
+      letterSpacing: {
+        tightest: '-0.04em',
+        tighter: '-0.02em',
       },
       animation: {
         'fade-up': 'fadeUp 0.8s ease forwards',
